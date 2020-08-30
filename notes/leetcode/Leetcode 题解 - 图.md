@@ -105,7 +105,57 @@ return false
 
 ```c
 /*
-dfs：从一个未被访问的顶点v开始，不断访问它的邻接顶点k
+bfs:正常的拓扑排序思维。正向思维，顺序地生成拓扑排序。
+入度为0的顶点入队列；
+当队列不为空时，取出队头顶点；
+将该顶点放入排序序列中，并将所有和它相连顶点的入度-1；
+将入度为0的顶点入队列
+若最后排序序列顶点个数为课程总数，则合理
+
+时间复杂度：o(m+n)；m是先修课程总数；n是课程总数
+空间复杂度：o(m+n)；邻接矩阵o(m+n)，队列o(n)
+*/
+class Solution {
+private:
+    vector<vector<int>> edges;
+    vector<int> index;
+public:
+    bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
+        edges.resize(numCourses);
+        index.resize(numCourses,0);
+        for (const auto& p: prerequisites) {
+            edges[p[1]].push_back(p[0]);
+            ++index[p[0]];
+        }
+        queue<int> q;
+        for(int i=0;i<numCourses;++i)
+        {
+            if(index[i]==0) 
+                q.push(i);
+        }
+        int visited=0;
+        while(!q.empty())
+        {
+            ++visited;
+            int num=q.front();
+            q.pop();
+            for(auto e:edges[num])
+            {
+                --index[e];
+                if(index[e]==0)
+                    q.push(e);
+            }
+        }
+        return visited==numCourses;
+    }
+};
+
+```
+
+```c
+/*
+dfs：是一种逆向思维：最先被放入栈中的节点是在拓扑排序中最后面的节点
+从一个未被访问的顶点v开始，不断访问它的邻接顶点k
 k有三种状态：
 正在被访问（置1）：存在环；
 访问完成（置2）：和k邻接的顶点已经排在了它的前面，无影响；
@@ -166,53 +216,97 @@ bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
 There are a total of 4 courses to take. To take course 3 you should have finished both courses 1 and 2. Both courses 1 and 2 should be taken after you finished course 0. So one correct course order is [0,1,2,3]. Another correct ordering is[0,2,1,3].
 ```
 
+```c
+//bfs
+//时间复杂度：o(m+n)
+//空间复杂度：o(m+n)
+vector<vector<int>> edges;
+vector<int> index;
+vector<int> ans;
+vector<int> findOrder(int numCourses, vector<vector<int>>& prerequisites) 
+{
+  edges.resize(numCourses);
+  index.resize(numCourses,0);
+  if(numCourses<=0) return {};
+  for(const auto& p:prerequisites)
+  {
+      edges[p[1]].push_back(p[0]);
+      ++index[p[0]];
+  }
+  queue<int> q;
+  for(int i=0;i<numCourses;++i)
+  {
+      if(index[i]==0)
+          q.push(i);
+  }
+  while(!q.empty())
+  {
+      int num=q.front();
+      q.pop();
+      ans.push_back(num);
+      for(auto e:edges[num])
+      {
+          --index[e];
+          if(index[e]==0)
+              q.push(e);
+      }
+  }
+  if(ans.size()==numCourses) return ans;
+  else return {};
+}
+```
+
+```html
 使用 DFS 来实现拓扑排序，使用一个栈存储后序遍历结果，这个栈的逆序结果就是拓扑排序结果。
 
 证明：对于任何先序关系：v->w，后序遍历结果可以保证 w 先进入栈中，因此栈的逆序结果中 v 会在 w 之前。
+```
 
-```java
-public int[] findOrder(int numCourses, int[][] prerequisites) {
-    List<Integer>[] graphic = new List[numCourses];
-    for (int i = 0; i < numCourses; i++) {
-        graphic[i] = new ArrayList<>();
-    }
-    for (int[] pre : prerequisites) {
-        graphic[pre[0]].add(pre[1]);
-    }
-    Stack<Integer> postOrder = new Stack<>();
-    boolean[] globalMarked = new boolean[numCourses];
-    boolean[] localMarked = new boolean[numCourses];
-    for (int i = 0; i < numCourses; i++) {
-        if (hasCycle(globalMarked, localMarked, graphic, i, postOrder)) {
-            return new int[0];
+```c
+/*dfs
+o(m+n) o(m+n)
+*/
+vector<vector<int>> edges;
+vector<int> visited;
+vector<int> ans;
+bool valid=true;
+void dfs(int i)
+{
+    visited[i]=1;
+    for(auto e:edges[i])
+    {
+        if(visited[e]==1) 
+        {
+            valid=false;
+            return;
+        }
+        else if(visited[e]==0)
+        {
+            dfs(e);
+            if(!valid) return;
         }
     }
-    int[] orders = new int[numCourses];
-    for (int i = numCourses - 1; i >= 0; i--) {
-        orders[i] = postOrder.pop();
-    }
-    return orders;
+    visited[i]=2;
+    ans.push_back(i);
 }
-
-private boolean hasCycle(boolean[] globalMarked, boolean[] localMarked, List<Integer>[] graphic,
-                         int curNode, Stack<Integer> postOrder) {
-
-    if (localMarked[curNode]) {
-        return true;
-    }
-    if (globalMarked[curNode]) {
-        return false;
-    }
-    globalMarked[curNode] = true;
-    localMarked[curNode] = true;
-    for (int nextNode : graphic[curNode]) {
-        if (hasCycle(globalMarked, localMarked, graphic, nextNode, postOrder)) {
-            return true;
-        }
-    }
-    localMarked[curNode] = false;
-    postOrder.push(curNode);
-    return false;
+vector<int> findOrder(int numCourses, vector<vector<int>>& prerequisites) 
+{
+  if(numCourses<=0) return {};
+  edges.resize(numCourses);
+  visited.resize(numCourses,0);
+  for(const auto& p:prerequisites)
+      edges[p[1]].push_back(p[0]);
+  for(int i=0;i<numCourses;++i)
+  {
+      if(!visited[i] && valid)
+          dfs(i);
+  }
+  if(valid)
+  {
+      reverse(ans.begin(),ans.end());
+      return ans;
+  } 
+  else return {};
 }
 ```
 
