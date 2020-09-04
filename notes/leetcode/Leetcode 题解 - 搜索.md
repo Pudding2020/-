@@ -26,8 +26,9 @@
     * [13. 分割字符串使得每个部分都是回文数](#13-分割字符串使得每个部分都是回文数)
     * [14. 数独](#14-数独)
     * [15. N 皇后](#15-n-皇后)
-    * [17.电话号码的字母组合](#17电话号码的字母组合)
+    * [16. 电话号码的字母组合](#17-电话号码的字母组合)
 <!-- GFM-TOC -->
+
 
 # BFS
 
@@ -617,7 +618,143 @@ public:
 
 # Backtracking
 
-## 17. 电话号码的字母组合
+## 15. N 皇后
+
+51\. N-Queens (Hard)
+
+[Leetcode](https://leetcode.com/problems/n-queens/description/) / [力扣](https://leetcode-cn.com/problems/n-queens/description/)
+
+在 n\*n 的矩阵中摆放 n 个皇后，并且每个皇后不能在同一行，同一列，同一对角线上，求所有的 n 皇后的解。
+
+一行一行地摆放，在确定一行中的那个皇后应该摆在哪一列时，需要用三个标记数组来确定某一列是否合法，这三个标记数组分别为：列标记数组、45 度对角线标记数组和 135 度对角线标记数组。
+
+45 度对角线标记数组的长度为 2 \* n - 1，通过下图可以明确 (r, c) 的位置所在的数组下标为 r + c。
+
+135 度对角线标记数组的长度也是 2 \* n - 1，(r, c) 的位置所在的数组下标为 n - 1 - (r - c)。
+
+```html
+
+回溯算法流程：
+
+result = []
+void backtrack(路径, 选择列表):
+    if 满足结束条件:
+        result.add(路径)
+        return
+    
+    for 选择 in 选择列表:
+        合法性判断
+        做选择
+        backtrack(路径, 选择列表)
+        撤销选择
+```
+```c
+class Solution {
+public:
+    vector<vector<string>> res;
+    vector<vector<string>> solveNQueens(int n) {
+        if(n==0) return {};
+        //初始化空棋盘
+        vector<string> board(n,string(n,'.'));
+        dfs(board,0,n);
+        return res;
+    }
+
+    // 路径：board 中小于 row 的那些行都已经成功放置了皇后
+    // 选择列表：第 row 行的所有列都是放置皇后的选择
+    // 结束条件：row 超过 board 的最后一行
+    void dfs(vector<string>& board,int row,int n)
+    {
+        //结束条件
+        if(row==n)
+        {
+            res.push_back(board);
+            return;
+        }
+        for(int col=0;col<n;++col)
+        {
+            if(!valid(board,row,col)) continue;
+            board[row][col]='Q';
+            dfs(board,row+1,n);
+            board[row][col]='.';
+        }
+    }
+    bool valid(vector<string>& board,int row,int col)
+    {
+        int n=board.size();
+        //检查列是否有冲突
+        for(int i=0;i<n;++i)
+            if(board[i][col]=='Q')
+                return false;
+        // 检查右上方是否有皇后互相冲突
+        for (int i = row - 1, j = col + 1; i >= 0 && j < n; i--, j++) 
+        {
+            if (board[i][j] == 'Q')
+                return false;
+        }
+        // 检查左上方是否有皇后互相冲突
+        for (int i = row - 1, j = col - 1;i >= 0 && j >= 0; i--, j--) 
+        {
+            if (board[i][j] == 'Q')
+                return false;
+        }
+    return true;
+    }
+};
+```
+
+```html
+使用集合优化合理性判断
+由于每个皇后必须位于不同列，因此已经放置的皇后所在的列不能放置别的皇后。
+第一个皇后有 N 列可以选择，第二个皇后最多有 N−1 列可以选择，第三个皇后最多有 N−2 列可以选择
+（如果考虑到不能在同一条斜线上，可能的选择数量更少），因此所有可能的情况不会超过 N! 种
+遍历这些情况的时间复杂度是 O(N!)。
+使用集合记录，使合理性查找的时间为o(1)(上一种方法为o(n))
+同一条45°对角线：行下标-列下标=定值
+同一条135°对角线：行下标+列下标=定值
+时间复杂度：o(n!)
+空间复杂度：o(n)
+```
+```c
+class Solution {
+public:
+    vector<vector<string>> res;
+    unordered_set<int> usedcol;//有皇后的列
+    unordered_set<int> used45;//有皇后的左上角
+    unordered_set<int> used135;//有皇后的右上角
+    vector<vector<string>> solveNQueens(int n) {
+        if(n<=0) return {};
+        vector<string> board(n,string(n,'.'));
+        backtrack(board,0,n);
+        return res;
+    }
+    void backtrack(vector<string>& board,int row,int n)
+    {
+        if(row==board.size())
+        {
+            res.push_back(board);
+            return;
+        }
+        for(int col=0;col<n;++col)
+        {
+            if(usedcol.find(col)!=usedcol.end()) continue;
+            if(used45.find(row-col)!=used45.end()) continue;
+            if(used135.find(row+col)!=used135.end()) continue;
+            board[row][col]='Q';
+            usedcol.insert(col);
+            used135.insert(row+col);
+            used45.insert(row-col);
+            backtrack(board,row+1,n);
+            board[row][col]='.';
+            usedcol.erase(col);
+            used45.erase(row-col);
+            used135.erase(row+col);
+        }
+    }
+};
+```
+
+## 16. 电话号码的字母组合
 
 [leetcode-17.电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)
 
