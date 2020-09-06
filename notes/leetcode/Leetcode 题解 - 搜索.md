@@ -27,6 +27,7 @@
     * [14. 数独](#14-数独)
     * [15. N 皇后](#15-n-皇后)
     * [16. 电话号码的字母组合](#16-电话号码的字母组合)
+    * [17. 第k个排列](#17-第k个排列)
 <!-- GFM-TOC -->
 
 
@@ -813,5 +814,54 @@ public:
     }
 };
 ```
+## 17. 第k个排列
 
+[leetcode-60.第k个排列](https://leetcode-cn.com/problems/permutation-sequence/)
+
+返回[1,2,3...n]全排列的第k个
+
+```c
+/*
+时间复杂度：o(n^2)
+空间复杂度：o(n)
+*/
+class Solution {
+public:
+    //计算阶乘
+    void calculateFactorial(int n,vector<int>& factorial)
+    {
+        factorial[0]=1;
+        for(int i=1;i<=n;++i)
+        {
+            factorial[i]=factorial[i-1]*i;
+        }
+    }
+    void dfs(int index,int& k,string& path,int n,vector<int>& factorial,vector<bool>& used)
+    {
+        if(index==n) return;//index代表深度 表示当前在哪一层
+        int count=factorial[n-1-index];
+        for(int i=1;i<=n;++i)//每一层都要挑数字
+        {
+            if(used[i]) continue;
+            if(count<k)
+            {
+                k-=count;
+                continue;
+            }
+            path.push_back(i+'0');
+            used[i]=true;
+            dfs(index+1,k,path,n,factorial,used);
+            return;//不需要状态重置，直接返回，后面的也不需要再进行了
+        }
+    }
+    string getPermutation(int n, int k) {
+        vector<int> factorial(n+1);
+        vector<bool> used(n+1,false);
+        calculateFactorial(n,factorial);
+        string path;
+        dfs(0,k,path,n,factorial,used);
+        return path;
+    }
+};
+```
 
