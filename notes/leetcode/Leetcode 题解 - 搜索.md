@@ -731,56 +731,29 @@ word = "SEE", -> returns true,
 word = "ABCB", -> returns false.
 ```
 
-```java
-private final static int[][] direction = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-private int m;
-private int n;
+```c
 
-public boolean exist(char[][] board, String word) {
-    if (word == null || word.length() == 0) {
-        return true;
-    }
-    if (board == null || board.length == 0 || board[0].length == 0) {
-        return false;
-    }
+//只要搜索返回 True 才返回，如果全部的格子都搜索完了以后，都返回 False ，才返回 False。
 
-    m = board.length;
-    n = board[0].length;
-    boolean[][] hasVisited = new boolean[m][n];
-
-    for (int r = 0; r < m; r++) {
-        for (int c = 0; c < n; c++) {
-            if (backtracking(0, r, c, hasVisited, board, word)) {
-                return true;
-            }
-        }
-    }
-
-    return false;
+bool backtrack(vector<vector<char>>& board,string word,int x,int y,int cur)
+{
+  if(x<0 || x>=board.size() || y<0 || y>=board[0].size() || board[x][y]!=word[cur])
+      return false;
+  else if(cur==word.size()-1) return true;
+  char c=board[x][y];
+  board[x][y]='#';
+  if(backtrack(board,word,x+1,y,cur+1) || backtrack(board,word,x-1,y,cur+1) || backtrack(board,word,x,y+1,cur+1) || backtrack(board,word,x,y-1,cur+1))
+  return true;
+  board[x][y]=c;
+  return false;
 }
-
-private boolean backtracking(int curLen, int r, int c, boolean[][] visited, final char[][] board, final String word) {
-    if (curLen == word.length()) {
-        return true;
-    }
-    if (r < 0 || r >= m || c < 0 || c >= n
-            || board[r][c] != word.charAt(curLen) || visited[r][c]) {
-
-        return false;
-    }
-
-    visited[r][c] = true;
-
-    for (int[] d : direction) {
-        if (backtracking(curLen + 1, r + d[0], c + d[1], visited, board, word)) {
-            return true;
-        }
-    }
-
-    visited[r][c] = false;
-
-    return false;
-}
+bool exist(vector<vector<char>>& board, string word) {
+  if(board.empty() || word.empty()) return false;
+  for(int i=0;i<board.size();++i)
+      for(int j=0;j<board[0].size();++j)
+          if(backtrack(board,word,i,j,0)) return true;       
+  return false;
+}     
 ```
 
 ## 4. 输出二叉树中所有从根到叶子的路径
